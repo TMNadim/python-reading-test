@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python Output Quiz</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px 16px 70px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #eef2f7;
+    color: #1e293b;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app { max-width: 720px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 22px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; }
+  header p  { margin: 0; color: #64748b; font-size: .95rem; }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 6px 24px rgba(15, 23, 42, .08);
+  }
+
+  /* ---------- progress ---------- */
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .82rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 8px;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+  }
+  .bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .bar > div {
+    height: 100%;
+    width: 0;
+    background: #3b82f6;
+    border-radius: 99px;
+    transition: width .35s ease;
+  }
+
+  /* ---------- question ---------- */
+  h2.q { font-size: 1.08rem; margin: 0 0 14px; }
+
+  pre.code {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 16px 18px;
+    border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .95rem;
+    line-height: 1.65;
+    margin: 0 0 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  pre.code.small { font-size: .85rem; padding: 12px 14px; }
+
+  .note {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: .9rem;
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-weight: 700;
+    font-size: .88rem;
+    margin-bottom: 7px;
+    color: #334155;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 13px 15px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+    resize: vertical;
+    background: #f8fafc;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #fff;
+  }
+  textarea:disabled { color: #334155; background: #f1f5f9; }
+
+  /* ---------- feedback ---------- */
+  .feedback { margin-top: 18px; display: none; }
+  .feedback.show { display: block; }
+
+  .fb-title { font-weight: 800; font-size: 1.05rem; margin-bottom: 10px; }
+  .feedback.ok .fb-title { color: #15803d; }
+  .feedback.no .fb-title { color: #b91c1c; }
+  .feedback.warn .fb-title { color: #b45309; }
+
+  .fb-line { font-size: .88rem; font-weight: 700; color: #475569; margin: 12px 0 6px; }
+
+  pre.out {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .93rem;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .why {
+    font-size: .9rem;
+    color: #475569;
+    line-height: 1.6;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 11px 14px;
+    margin-top: 12px;
+  }
+
+  /* ---------- buttons ---------- */
+  .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+  button {
+    font: inherit;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 26px;
+    cursor: pointer;
+    background: #3b82f6;
+    color: #fff;
+    transition: background .15s, transform .05s;
+  }
+  button:hover  { background: #2563eb; }
+  button:active { transform: translateY(1px); }
+  button.ghost  { background: #e2e8f0; color: #1e293b; }
+  button.ghost:hover { background: #cbd5e1; }
+
+  .hidden { display: none !important; }
+
+  /* ---------- results ---------- */
+  #results { text-align: center; }
+  .score-big {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #3b82f6;
+    line-height: 1.1;
+    margin: 6px 0;
+  }
+  .score-msg { color: #475569; margin: 0 0 8px; font-size: 1rem; }
+
+  .review { text-align: left; margin-top: 26px; display: grid; gap: 16px; }
+
+  .review-item {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+  }
+  .review-item.ok { border-color: #bbf7d0; background: #f0fdf4; }
+  .review-item.no { border-color: #fecaca; background: #fef2f2; }
+
+  .rev-head {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 800;
+    font-size: .85rem;
+    margin-bottom: 10px;
+    color: #475569;
+  }
+  .review-item.ok .rev-mark { color: #15803d; }
+  .review-item.no .rev-mark { color: #b91c1c; }
+
+  .rev-line { font-size: .82rem; font-weight: 700; color: #64748b; margin: 10px 0 5px; }
+
+  .rev-why { font-size: .86rem; color: #475569; margin-top: 10px; line-height: 1.55; }
+
+  @media (max-width: 480px) {
+    .card { padding: 20px 16px; }
+    header h1 { font-size: 1.35rem; }
+    button { width: 100%; }
+    .actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header>
+  <a href="index.html" style="
+    display:inline-block;
+    margin-bottom:16px;
+    color:#64748b;
+    text-decoration:none;
+    font-size:.88rem;
+    font-weight:600;
+    ">← Back to home</a>
+
+  <header>
+    <h1>🐍 Python Output Quiz</h1>
+    <p>Read the code and write what Python will print.</p>
+  </header>
+
+  <!-- ===== QUIZ ===== -->
+  <main id="quiz" class="card">
+    <div class="progress-row">
+      <span>Question <span id="qnum">1</span> of <span id="qtotal">10</span></span>
+      <span id="qscore">Score: 0</span>
+    </div>
+    <div class="bar"><div id="barfill"></div></div>
+
+    <h2 class="q">What is the output of this code?</h2>
+    <pre class="code"><code id="code"></code></pre>
+
+    <div class="note hidden" id="note"></div>
+
+    <label for="answer">Your answer:</label>
+    <textarea id="answer" rows="4" spellcheck="false" autocomplete="off"
+      placeholder="Type exactly what Python would show on the screen..."></textarea>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="actions">
+      <button id="checkBtn">Check answer</button>
+      <button id="nextBtn" class="hidden">Next question →</button>
+    </div>
+  </main>
+
+  <!-- ===== RESULTS ===== -->
+  <section id="results" class="card hidden">
+    <h1 style="font-size:1.4rem;margin:0 0 4px;">Your Result</h1>
+    <div class="score-big" id="scoreBig">0 / 10</div>
+    <p class="score-msg" id="scoreMsg"></p>
+    <div class="review" id="review"></div>
+    <div class="actions" style="justify-content:center;">
+      <button id="restartBtn" class="ghost">🔄 Try again</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   ✏️  EDIT YOUR QUESTIONS HERE
+   ------------------------------------------------------------
+   code     : the Python code shown to the student
+   note     : extra info shown in a yellow box (e.g. what the
+              user types). Use "" for no note.
+   answers  : list of accepted answers. The FIRST one is the
+              "correct answer" shown to the student.
+              Use \n for a new line.
+   explain  : short explanation shown after answering
+   ============================================================ */
+const QUESTIONS = [
+  {
+    code: 'print("Hello, World!")',
+    note: '',
+    answers: ['Hello, World!'],
+    explain: 'print() shows exactly the text inside the quotes — the quotes themselves are not printed.'
+  },
+  {
+    code: 'print("Python")\nprint("is fun")',
+    note: '',
+    answers: ['Python\nis fun'],
+    explain: 'Each print() writes on its own new line. So the two texts appear one under the other.'
+  },
+  {
+    code: 'print("2 + 3")',
+    note: '',
+    answers: ['2 + 3'],
+    explain: 'Anything inside quotes is just text. Python does NOT calculate it — it prints the characters 2 + 3.'
+  },
+  {
+    code: 'name = "Ali"\nprint(name)',
+    note: '',
+    answers: ['Ali'],
+    explain: 'name = "Ali" stores the text in the variable. print(name) prints the value inside the variable, not the word "name".'
+  },
+  {
+    code: 'x = 5\nx = 10\nprint(x)',
+    note: '',
+    answers: ['10'],
+    explain: 'The second line replaces the old value. Now x holds 10, so only 10 is printed.'
+  },
+  {
+    code: 'x = 10\ny = 5\nprint(x + y)',
+    note: '',
+    answers: ['15'],
+    explain: 'x + y means 10 + 5. There are no quotes, so Python calculates the result and prints 15.'
+  },
+  {
+    code: 'age = 12\nprint("Age:", age)',
+    note: '',
+    answers: ['Age: 12'],
+    explain: 'print() with a comma puts one space between the items. So it prints "Age:" then a space then 12.'
+  },
+  {
+    code: 'name = input()\nprint(name)',
+    note: 'The user types: Sara  (then presses Enter)',
+    answers: ['Sara'],
+    explain: 'input() waits for the user to type something. Whatever they type is stored in name, then printed.'
+  },
+  {
+    code: 'name = input("Enter name: ")\nprint("Hello", name)',
+    note: 'The user types: Omar  (then presses Enter)',
+    answers: ['Enter name: Omar\nHello Omar', 'Hello Omar'],
+    explain: 'input("Enter name: ") first shows the prompt on the screen, and the user types Omar on the SAME line. After Enter is pressed, the next print starts on a new line: Hello Omar'
+  },
+  {
+    code: 'color = "blue"\nprint("My color is", color)',
+    note: '',
+    answers: ['My color is blue'],
+    explain: 'The comma joins the text "My color is" with the value inside color, with one space between them.'
+  }
+];
+
+/* ============================================================
+   App logic — you don't need to change anything below
+   ============================================================ */
+
+const TOTAL = QUESTIONS.length;
+let idx = 0, score = 0, results = [], answered = false;
+
+const $ = id => document.getElementById(id);
+const quizEl    = $('quiz');
+const resultsEl = $('results');
+
+/* Compare answers ignoring extra spaces / blank lines at the edges */
+function normalize(text) {
+  return String(text)
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join('\n');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[idx];
+  answered = false;
+
+  $('qnum').textContent   = idx + 1;
+  $('qtotal').textContent = TOTAL;
+  $('qscore').textContent = 'Score: ' + score;
+  $('barfill').style.width = (idx / TOTAL * 100) + '%';
+
+  $('code').textContent = q.code;
+
+  const noteEl = $('note');
+  if (q.note) {
+    noteEl.textContent = q.note;
+    noteEl.classList.remove('hidden');
+  } else {
+    noteEl.classList.add('hidden');
+  }
+
+  const answerEl = $('answer');
+  answerEl.value = '';
+  answerEl.disabled = false;
+
+  const fb = $('feedback');
+  fb.className = 'feedback';
+  fb.innerHTML = '';
+
+  $('checkBtn').classList.remove('hidden');
+  $('nextBtn').classList.add('hidden');
+
+  answerEl.focus();
+}
+
+function checkAnswer() {
+  if (answered) return;
+
+  const q = QUESTIONS[idx];
+  const answerEl = $('answer');
+  const userText = answerEl.value;
+
+  if (!userText.trim()) {
+    const fb = $('feedback');
+    fb.className = 'feedback show warn';
+    fb.innerHTML = '<div class="fb-title">✋ Please write your answer first.</div>';
+    return;
+  }
+
+  answered = true;
+  const userNorm = normalize(userText);
+  const isCorrect = q.answers.some(a => normalize(a) === userNorm);
+
+  if (isCorrect) score++;
+  results.push({ q, user: userText, correct: isCorrect });
+
+  $('qscore').textContent = 'Score: ' + score;
+  answerEl.disabled = true;
+  $('checkBtn').classList.add('hidden');
+
+  const nextBtn = $('nextBtn');
+  nextBtn.textContent = (idx === TOTAL - 1) ? 'See my score 🎉' : 'Next question →';
+  nextBtn.classList.remove('hidden');
+
+  const fb = $('feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'ok' : 'no');
+  fb.innerHTML =
+    '<div class="fb-title">' + (isCorrect ? '✅ Correct!' : '❌ Not quite') + '</div>' +
+    '<div class="fb-line">Correct output:</div>' +
+    '<pre class="out">' + escapeHtml(q.answers[0]) + '</pre>' +
+    '<div class="why">💡 ' + escapeHtml(q.explain) + '</div>';
+}
+
+function nextQuestion() {
+  idx++;
+  if (idx >= TOTAL) showResults();
+  else renderQuestion();
+}
+
+function showResults() {
+  quizEl.classList.add('hidden');
+  resultsEl.classList.remove('hidden');
+
+  $('scoreBig').textContent = score + ' / ' + TOTAL;
+
+  const pct = score / TOTAL;
+  let msg;
+  if (pct === 1)       msg = 'Perfect score! You really understand print(), variables and input(). 🏆';
+  else if (pct >= 0.8) msg = 'Great job! Just a small thing or two to review. 👏';
+  else if (pct >= 0.5) msg = 'Good start! Read the explanations below and try again. 💪';
+  else                 msg = 'Keep practising! Read the explanations below carefully. 📘';
+  $('scoreMsg').textContent = msg;
+
+  $('review').innerHTML = results.map((r, i) => `
+    <div class="review-item ${r.correct ? 'ok' : 'no'}">
+      <div class="rev-head">
+        <span>Question ${i + 1}</span>
+        <span class="rev-mark">${r.correct ? '✅ Correct' : '❌ Wrong'}</span>
+      </div>
+      <pre class="code small">${escapeHtml(r.q.code)}</pre>
+      ${r.q.note ? `<div class="note" style="font-size:.85rem;">${escapeHtml(r.q.note)}</div>` : ''}
+      <div class="rev-line">YOUR ANSWER</div>
+      <pre class="out">${escapeHtml(r.user.trim()) || '(blank)'}</pre>
+      ${r.correct ? '' : `
+        <div class="rev-line">CORRECT ANSWER</div>
+        <pre class="out">${escapeHtml(r.q.answers[0])}</pre>`}
+      <div class="rev-why">💡 ${escapeHtml(r.q.explain)}</div>
+    </div>
+  `).join('');
+}
+
+function restart() {
+  idx = 0; score = 0; results = []; answered = false;
+  resultsEl.classList.add('hidden');
+  quizEl.classList.remove('hidden');
+  renderQuestion();
+}
+
+/* Events */
+$('checkBtn').addEventListener('click', checkAnswer);
+$('nextBtn').addEventListener('click', nextQuestion);
+$('restartBtn').addEventListener('click', restart);
+
+/* Ctrl + Enter = check / next */
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    if (!quizEl.classList.contains('hidden')) {
+      answered ? nextQuestion() : checkAnswer();
+    }
+  }
+});
+
+/* Start */
+renderQuestion();
+</script>
+
+</body>
+</html>
